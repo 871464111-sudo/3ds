@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>点云AR查看器</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/webxr/ARButton.js"></script>
+</head>
+<body style="margin: 0px; overflow: hidden;">
+    <script>
+        // --------------------------
+        // 👇 这里改成你自己的文件！
+        const MODEL_URL = './pointcloud_model.json'; // 你的JSON文件路径，BIN文件会自动加载
+        const MODEL_SCALE = 0.1; // 模型缩放，根据你的模型大小调整，太大就调小
+        // --------------------------
+
+        // 初始化Three.js场景
+        let scene, camera, renderer, model;
+        init();
+        animate();
+
+        function init() {
+            // 基础场景初始化
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true; // 开启WebXR AR支持
+            document.body.appendChild(renderer.domElement);
+
+            // 添加AR按钮，用于授权相机
+            document.body.appendChild(ARButton.createButton(renderer));
+
+            // 灯光，让点云显示更自然
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            light.position.set(0.5, 1, 0.25);
+            scene.add(light);
+
+            // 加载你的点云模型（JSON+BIN）
+            const loader = new GLTFLoader();
+            loader.load(
+                MODEL_URL,
+                function (gltf) {
+                    model = gltf.scene;
+                    model.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+                    model.visible = false; // 初始隐藏，等用户点击平面再显示
+                    scene.add(model);
+                    console.log("模型加载完成！");
+                },
+                function (xhr) {
+                    console.log('加载进度: ' + (xhr.loaded / xhr.total * 100).toFixed(1) + '%');
+                },
+                function (error) {
+                    console.error('模型加载失败:', error);
+                    alert("模型加载失败，请检查文件路径是否正确");
+                }
+            );
+
+            // 点击检测：用户点击平面时放置模型
+            const controller = renderer.xr.getController(0);
+            controller.addEventListener('select', onSelect);
+            scene.add(controller);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // 点击平面放置模型
+        function onSelect() {
+            if (!model) return; // 模型还没加载完就忽略
+
+            // 获取点击的真实世界位置
+            const hitTestSource = renderer.xr.getHitTestSourceForTransientInput({
+                profile: 'generic-touchscreen'
+            });
+            const frame = renderer.xr.getFrame();
+            const hitTestResults = frame.getHitTestResultsForTransientInput(hitTestSource);
+
+            if (hitTestResults.length > 0) {
+                const hitPose = hitTestResults[0].results[0].getPose(frame.session.renderState.baseSpace);
+                
+                // 将模型移动到点击的平面位置
+                model.position.set(
+                    hitPose.transform.position.x,
+                    hitPose.transform.position.y,
+                    hitPose.transform.position.z
+                );
+                model.visible = true; // 显示模型
+                console.log("模型已放置到平面！");
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            renderer.setAnimationLoop(render);
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

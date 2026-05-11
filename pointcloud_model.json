@@ -1,0 +1,79 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Custom Converter"
+  },
+  "buffers": [
+    {
+      "uri": "pointcloud_model.bin",
+      "byteLength": 2097152
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 1572864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1572864,
+      "byteLength": 524288,
+      "target": 34962
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 131072,
+      "type": "VEC3",
+      "min": [
+        -25.27373373527997,
+        -25.495196600577266,
+        -25.559724085522355
+      ],
+      "max": [
+        25.536128717208292,
+        25.538541247484602,
+        25.53192765057151
+      ]
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 131072,
+      "type": "VEC4",
+      "normalized": true
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "COLOR_0": 1
+          },
+          "mode": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0
+}
